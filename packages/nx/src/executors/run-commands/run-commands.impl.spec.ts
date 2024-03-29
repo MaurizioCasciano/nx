@@ -1,4 +1,4 @@
-import { readFileSync, unlinkSync, writeFileSync } from 'fs';
+import { appendFileSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { relative } from 'path';
 import { dirSync, fileSync } from 'tmp';
 import runCommands, {
@@ -829,7 +829,7 @@ describe('Run Commands', () => {
       const devEnv = fileSync().name;
       writeFileSync(devEnv, 'NX_SITE=https://nx.dev/');
       let f = fileSync().name;
-      const result = await runCommands(
+      let result = await runCommands(
         {
           commands: [
             {
@@ -843,7 +843,23 @@ describe('Run Commands', () => {
       );
 
       expect(result).toEqual(expect.objectContaining({ success: true }));
-      expect(readFile(f)).toEqual('https://nx.dev/');
+      expect(readFile(f)).toContain('https://nx.dev/');
+
+      appendFileSync(devEnv, 'NX_TEST=$NX_SITE');
+      await runCommands(
+        {
+          commands: [
+            {
+              command: `echo $NX_TEST >> ${f}`,
+            },
+          ],
+          envFile: devEnv,
+          __unparsed__: [],
+        },
+        context
+      );
+      expect(result).toEqual(expect.objectContaining({ success: true }));
+      expect(readFile(f)).toContain('https://nx.dev/');
     });
 
     it('should error if the specified .env file does not exist', async () => {

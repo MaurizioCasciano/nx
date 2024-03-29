@@ -10,20 +10,29 @@ import {
   PseudoTtyProcess,
 } from '../../tasks-runner/pseudo-terminal';
 import { signalToCode } from '../../utils/exit-codes';
+import {
+  loadAndExplandDotEnvFile,
+  unloadDotEnvFile,
+} from '../../tasks-runner/task-env';
 
 export const LARGE_BUFFER = 1024 * 1000000;
 let pseudoTerminal: PseudoTerminal | null;
 const childProcesses = new Set<ChildProcess | PseudoTtyProcess>();
 
-async function loadEnvVars(path?: string) {
+function loadEnvVars(path?: string) {
   if (path) {
-    const result = (await import('dotenv')).config({ path });
+    unloadDotEnvFile(path, process.env, true); // override the existing env variables when run-many
+    const result = loadAndExplandDotEnvFile(path, process.env, true);
     if (result.error) {
       throw result.error;
     }
   } else {
     try {
-      (await import('dotenv')).config();
+      unloadDotEnvFile('.env', process.env);
+      const result = loadAndExplandDotEnvFile('.env', process.env);
+      if (result.error) {
+        throw result.error;
+      }
     } catch {}
   }
 }
@@ -110,7 +119,7 @@ export default async function (
 }> {
   registerProcessListener();
   if (process.env.NX_LOAD_DOT_ENV_FILES !== 'false') {
-    await loadEnvVars(options.envFile);
+    loadEnvVars(options.envFile);
   }
   const normalized = normalizeOptions(options);
 

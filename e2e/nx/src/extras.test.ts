@@ -2,7 +2,6 @@ import { parseJson } from '@nx/devkit';
 import {
   checkFilesExist,
   cleanupProject,
-  getSelectedPackageManager,
   isNotWindows,
   newProject,
   readFile,
@@ -294,48 +293,33 @@ describe('Extra Nx Misc Tests', () => {
 
   describe('Env File', () => {
     it('should have the right env', () => {
-      const appName = uniq('app');
+      const libName = uniq('lib');
       runCLI(
-        `generate @nx/react:app ${appName} --style=css --bundler=webpack --no-interactive`
+        `generate @nx/js:lib ${libName} --bundler=none --unitTestRunner=none --no-interactive`
       );
       updateFile(
         '.env',
         `FIRSTNAME="firstname"
-  LASTNAME="lastname"
-  NX_USERNAME=$FIRSTNAME $LASTNAME`
+LASTNAME="lastname"
+NX_USERNAME=$FIRSTNAME $LASTNAME`
       );
-      updateFile(
-        `apps/${appName}/src/app/app.tsx`,
-        `
-      import NxWelcome from './nx-welcome';
-  
-      export function App() {
-        return (
-          <>
-            <NxWelcome title={process.env.NX_USERNAME} />
-          </>
-        );
-      }
-  
-      export default App;
-    `
-      );
-      updateFile(
-        `apps/${appName}/src/app/app.spec.tsx`,
-        `import { render } from '@testing-library/react';
-  
-    import App from './app';
-    
-    describe('App', () => {
-      it('should have a greeting as the title', () => {
-        const { getByText } = render(<App />);
-        expect(getByText(/Welcome firstname lastname/gi)).toBeTruthy();
+      updateJson(join('libs', libName, 'project.json'), (config) => {
+        config.targets.echo = {
+          command: 'echo $NX_USERNAME',
+        };
+        return config;
       });
-    });
-  `
-      );
-      const unitTestsOutput = runCLI(`test ${appName}`);
-      expect(unitTestsOutput).toContain('Successfully ran target test');
+
+      let result = runCLI(`run ${libName}:echo`);
+      expect(result).toContain('firstname lastname');
+
+      updateFile('.env', (content) => {
+        content = content.replace('firstname', 'firstname2');
+        content = content.replace('lastname', 'lastname2');
+        return content;
+      });
+      result = runCLI(`run ${libName}:echo`);
+      expect(result).toContain('firstname2 lastname2');
     });
   });
 
