@@ -56,6 +56,11 @@ export class ExternalApiImpl extends ExternalApi {
             type: 'override-target',
             payload,
           });
+        } else if (type === 'run-help') {
+          this.graphInteractionEventListener({
+            type: 'run-help',
+            payload,
+          });
         } else {
           console.log('unhandled event', type, payload);
         }

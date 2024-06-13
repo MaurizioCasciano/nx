@@ -582,6 +582,11 @@ async function startServer(
       return;
     }
 
+    if (sanitizePath === 'help.json') {
+      res.end(JSON.stringify({ response: '' }));
+      return;
+    }
+
     if (sanitizePath === 'task-inputs.json') {
       performance.mark('task input generation:start');
 
@@ -596,6 +601,7 @@ async function startServer(
         'task input generation:start',
         'task input generation:end'
       );
+
       return;
     }
 
