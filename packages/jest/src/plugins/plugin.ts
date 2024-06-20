@@ -3,6 +3,7 @@ import {
   CreateNodesContext,
   createNodesFromFiles,
   CreateNodesV2,
+  getPackageManagerCommand,
   joinPathFragments,
   logger,
   normalizePath,
@@ -10,7 +11,7 @@ import {
   ProjectConfiguration,
   readJsonFile,
   TargetConfiguration,
-  writeJsonFile,
+  writeJsonFile
 } from '@nx/devkit';
 import { dirname, isAbsolute, join, relative, resolve } from 'path';
 
@@ -20,10 +21,7 @@ import { readConfig, replaceRootDirInPath } from 'jest-config';
 import jestResolve from 'jest-resolve';
 import { workspaceDataDirectory } from 'nx/src/utils/cache-directory';
 import { calculateHashForCreateNodes } from '@nx/devkit/src/utils/calculate-hash-for-create-nodes';
-import {
-  clearRequireCache,
-  loadConfigFile,
-} from '@nx/devkit/src/utils/config-utils';
+import { clearRequireCache, loadConfigFile } from '@nx/devkit/src/utils/config-utils';
 import { getGlobPatternsFromPackageManagerWorkspaces } from 'nx/src/plugins/package-json-workspaces';
 import { combineGlobPatterns } from 'nx/src/utils/globs';
 import { minimatch } from 'minimatch';
@@ -155,6 +153,7 @@ async function buildJestTargets(
   options: JestPluginOptions,
   context: CreateNodesContext
 ): Promise<Pick<ProjectConfiguration, 'targets' | 'metadata'>> {
+  const pmc = getPackageManagerCommand();
   const absConfigFilePath = resolve(context.workspaceRoot, configFilePath);
 
   if (require.cache[absConfigFilePath]) {
@@ -184,6 +183,9 @@ async function buildJestTargets(
     metadata: {
       technologies: ['jest'],
       description: 'Run Jest Tests',
+      help: {
+        command: `${pmc.exec} jest --help`,
+      },
     },
   });
 
@@ -237,6 +239,9 @@ async function buildJestTargets(
         metadata: {
           technologies: ['jest'],
           description: 'Run Jest Tests in CI',
+          help: {
+            command: `${pmc.exec} jest --help`,
+          },
         },
       };
       targetGroup.push(options.ciTargetName);
@@ -258,6 +263,9 @@ async function buildJestTargets(
           metadata: {
             technologies: ['jest'],
             description: `Run Jest Tests in ${relativePath}`,
+            help: {
+              command: `${pmc.exec} jest --help`,
+            },
           },
         };
         targetGroup.push(targetName);

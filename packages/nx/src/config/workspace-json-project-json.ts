@@ -128,6 +128,9 @@ export interface TargetMetadata {
   [k: string]: any;
   description?: string;
   technologies?: string[];
+  help?: {
+    command: string;
+  };
 }
 
 export interface TargetDependencyConfig {
