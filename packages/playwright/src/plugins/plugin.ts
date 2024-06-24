@@ -167,6 +167,11 @@ async function buildPlaywrightTargets(
       description: 'Runs Playwright Tests',
       help: {
         command: `${pmc.exec} playwright test --help`,
+        example: {
+          options: {
+            workers: 1,
+          },
+        },
       },
     },
   };
@@ -223,6 +228,11 @@ async function buildPlaywrightTargets(
             description: `Runs Playwright Tests in ${relativeSpecFilePath} in CI`,
             help: {
               command: `${pmc.exec} playwright test --help`,
+              example: {
+                options: {
+                  workers: 1,
+                },
+              },
             },
           },
         };
@@ -252,6 +262,11 @@ async function buildPlaywrightTargets(
         description: 'Runs Playwright Tests in CI',
         help: {
           command: `${pmc.exec} playwright test --help`,
+          example: {
+            options: {
+              workers: 1,
+            },
+          },
         },
       },
     };
